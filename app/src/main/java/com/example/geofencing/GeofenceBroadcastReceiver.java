@@ -42,7 +42,7 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
 
         switch (transitionType) {
             case Geofence.GEOFENCE_TRANSITION_ENTER:
-                new MapsActivity().makeSnack("GEOFENCE_TRANSITION_ENTER");
+//                new MapsActivity().makeSnack("GEOFENCE_TRANSITION_ENTER");
 
 //                Toast.makeText(context, "GEOFENCE_TRANSITION_ENTER", Toast.LENGTH_SHORT).show();
                 notificationHelper.sendHighPriorityNotification("GEOFENCE_DangerZone", "TRANSITION_ENTER", MapsActivity.class);

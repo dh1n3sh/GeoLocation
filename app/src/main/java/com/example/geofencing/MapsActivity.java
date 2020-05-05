@@ -1,11 +1,7 @@
 package com.example.geofencing;
 
-import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.FragmentActivity;
-
 import android.Manifest;
+import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -13,6 +9,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentActivity;
 
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
@@ -27,8 +28,10 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.snackbar.Snackbar;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMapLongClickListener {
+public class MapsActivity extends FragmentActivity implements
+        OnMapReadyCallback, GoogleMap.OnMapClickListener {
 
     private static final String TAG = "MapsActivity";
 
@@ -36,7 +39,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GeofencingClient geofencingClient;
     private GeofenceHelper geofenceHelper;
 
-    private float GEOFENCE_RADIUS = 200;
+    private float GEOFENCE_RADIUS = 500;
     private String GEOFENCE_ID = "SOME_GEOFENCE_ID";
 
     private int FINE_LOCATION_ACCESS_REQUEST_CODE = 10001;
@@ -70,12 +73,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
 
         // Add a marker in Sydney and move the camera
-        LatLng eiffel = new LatLng(48.8589, 2.29365);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(eiffel, 16));
+        LatLng chennai = new LatLng(13.0827, 80.2707);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(chennai, 16));
 
         enableUserLocation();
 
-        mMap.setOnMapLongClickListener(this);
+        mMap.setOnMapClickListener(this);
+
+//        mMap.setOnMapClickListener(this);
     }
 
     private void enableUserLocation() {
@@ -98,6 +103,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 //We have the permission
                 mMap.setMyLocationEnabled(true);
+//                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LocationManager., 16));
             } else {
                 //We do not have the permission..
 
@@ -116,11 +122,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     @Override
-    public void onMapLongClick(LatLng latLng) {
+    public void onMapClick(LatLng latLng) {
         if (Build.VERSION.SDK_INT >= 29) {
             //We need background permission
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                handleMapLongClick(latLng);
+                handleMapClick(latLng);
             } else {
                 if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
                     //We show a dialog and ask for permission
@@ -131,12 +137,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
 
         } else {
-            handleMapLongClick(latLng);
+            handleMapClick(latLng);
         }
 
     }
 
-    private void handleMapLongClick(LatLng latLng) {
+    private void handleMapClick(LatLng latLng) {
         mMap.clear();
         addMarker(latLng);
         addCircle(latLng, GEOFENCE_RADIUS);
@@ -154,6 +160,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     @Override
                     public void onSuccess(Void aVoid) {
                         Log.d(TAG, "onSuccess: Geofence Added...");
+                        Snackbar.make(findViewById(android.R.id.content),"Geo Added", Snackbar.LENGTH_SHORT).show();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -161,6 +168,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     public void onFailure(@NonNull Exception e) {
                         String errorMessage = geofenceHelper.getErrorString(e);
                         Log.d(TAG, "onFailure: " + errorMessage);
+                        Snackbar.make(findViewById(android.R.id.content),"Geo Failed "+errorMessage, Snackbar.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -178,5 +186,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         circleOptions.fillColor(Color.argb(64, 255, 0,0));
         circleOptions.strokeWidth(4);
         mMap.addCircle(circleOptions);
+    }
+
+    public void makeSnack(String msg) {
+        try {
+            SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                    .findFragmentById(R.id.map);
+            Snackbar.make(mapFragment.getView(), msg, Snackbar.LENGTH_LONG);
+        }catch (Exception e)
+        {
+            Log.d("ERR",e.getMessage());
+        }
     }
 }
